@@ -1,0 +1,1 @@
+-- Demo content is intentionally tiny. Production seed data will expand this.
