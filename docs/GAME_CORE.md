@@ -2,9 +2,17 @@
 
 Shadow Shinobi is built as a persistent systems game, not a collection of presentation screens. Presentation surfaces may evolve independently, while authoritative systems own state and outcomes.
 
-## Core loop
+## Current core loop
 
 **Command → Prepare → Explore → Encounter → Combat → Reward → World Memory → Improve → Repeat**
+
+## Authority boundary
+
+The browser is an input and presentation client. It must not be trusted to award currency, determine combat outcomes, bypass movement rules, or mutate progression directly.
+
+Authoritative flow:
+
+**Input → GameEngine command → subsystem validation → state mutation → event/result → presentation**
 
 ## Authoritative systems
 
@@ -13,6 +21,9 @@ Owns commander identity, currencies and persistent progression.
 
 ### Operative system
 Owns roster identity, levels and combat attributes.
+
+### Squad system
+Owns squad membership and battle order.
 
 ### Equipment system
 Owns item identity, rarity, enhancement, awakening, visual state and talent-tree references.
@@ -36,10 +47,6 @@ Use persistent history, branching talents, visual evolution and world-facing fai
 
 The browser UI is responsible for rendering state: maps, sprites, combat effects, menus, inventories, notifications and lore. Presentation can be replaced without changing authoritative rules.
 
-## Design test
-
-A new feature is considered a core system when its important state survives a page refresh and can be represented in persistent data. A feature is considered presentation when removing its UI does not change the underlying game state.
-
 ## Vertical slice standard
 
 Before declaring a major feature complete, it should have:
@@ -52,3 +59,9 @@ Before declaring a major feature complete, it should have:
 6. A documented extension point for future content.
 
 The Ashen Frontier is the first vertical slice that exercises the world, persistence, discovery and combat boundaries together.
+
+## Engine baseline
+
+Current baseline: `0.1.0-ashen-frontier`.
+
+The `GameEngine` service provides the shared command boundary. New gameplay systems should expose narrow authoritative operations through that boundary instead of embedding business rules directly in page scripts.
