@@ -91,16 +91,12 @@ final class OverworldService
 
         self::ensureTable($pdo);
         $current = self::state($pdo, $playerId);
-        $now = microtime(true);
-        $lastMove = isset($current['last_move_at']) ? strtotime((string)$current['last_move_at']) : false;
-        if ($lastMove !== false && (int)floor($now - (float)$lastMove) < 0) {
-            throw new \RuntimeException('Movement clock rejected.');
-        }
-
         $x = (int)$current['position_x'] + $dx;
         $y = (int)$current['position_y'] + $dy;
         if (!self::walkable($x, $y)) {
-            return self::decorateState($current, 'The way is blocked.');
+            $current['message'] = 'The way is blocked.';
+            $current['encounter'] = null;
+            return $current;
         }
 
         $zone = self::zoneAt($x, $y);
@@ -116,8 +112,8 @@ final class OverworldService
             }
         }
 
-        $stmt = $pdo->prepare('UPDATE world_player_state SET position_x=?,position_y,energy=?,steps=?,discovered_json=?,last_move_at=NOW(6) WHERE player_id=?');
-        $stmt->execute([$x,$energy,$steps,json_encode(array_values($discovered), JSON_THROW_ON_ERROR),$playerId]);
+        $stmt = $pdo->prepare('UPDATE world_player_state SET position_x=?, position_y=?, energy=?, steps=?, discovered_json=?, last_move_at=NOW(6) WHERE player_id=?');
+        $stmt->execute([$x,$y,$energy,$steps,json_encode(array_values($discovered), JSON_THROW_ON_ERROR),$playerId]);
 
         $result = self::state($pdo, $playerId);
         $result['zone_changed'] = ($zone['key'] ?? null) !== ($current['zone']['key'] ?? null);
@@ -140,7 +136,6 @@ final class OverworldService
             if ($x >= $bx && $x < $bx+$bw && $y >= $by && $y < $by+$bh) return false;
         }
 
-        // A few void fissures make the northern zone dangerous without becoming an unwalkable wall.
         if ($x >= 55 && $x <= 57 && $y >= 14 && $y <= 26 && $y % 2 === 0) return false;
         if ($x >= 71 && $x <= 73 && $y >= 4 && $y <= 28 && $y % 3 !== 0) return false;
         return true;
@@ -179,7 +174,7 @@ final class OverworldService
     private static function rollEncounter(array $zone, int $x, int $y, int $steps): ?array
     {
         $rate = (float)($zone['encounter_rate'] ?? 0.06);
-        if ($rate <= 0 || $steps % 2 === 0 && $rate < 0.1) return null;
+        if ($rate <= 0 || ($steps % 2 === 0 && $rate < 0.1)) return null;
         $seed = abs(crc32(self::MAP_KEY . ':' . $x . ':' . $y . ':' . $steps));
         $roll = ($seed % 100000) / 100000;
         if ($roll >= $rate) return null;
