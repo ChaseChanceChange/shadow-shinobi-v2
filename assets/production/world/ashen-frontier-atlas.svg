@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="96" viewBox="0 0 192 96" shape-rendering="crispEdges">
+  <title>Ashen Frontier original pixel atlas</title>
+  <desc>Original Shadow Shinobi environment and marker sprites. 24px tiles.</desc>
+  <rect width="192" height="96" fill="#0a0b0e"/>
+  <!-- row 1: terrain -->
+  <g transform="translate(0 0)"><rect width="24" height="24" fill="#292c2b"/><path d="M3 5h3v2H3zm12 10h4v2h-4zM7 19h2v2H7z" fill="#353a36"/></g>
+  <g transform="translate(24 0)"><rect width="24" height="24" fill="#26272b"/><path d="M4 18h5V8h4v4h4v8h3v2H4z" fill="#3d3d42"/><path d="M8 7h5v2H8z" fill="#545258"/></g>
+  <g transform="translate(48 0)"><rect width="24" height="24" fill="#202d25"/><path d="M11 20V8h2v12H11zM6 10h12v2H6zM8 7h8v3H8z" fill="#111913"/></g>
+  <g transform="translate(72 0)"><rect width="24" height="24" fill="#1d252a"/><path d="M4 5h16v3H4zm2 5h12v4H6zm3 6h7v5H9z" fill="#343b42"/></g>
+  <g transform="translate(96 0)"><rect width="24" height="24" fill="#2d2930"/><path d="M4 4h6v5H4zm10 2h6v4h-6zM7 15h13v5H7z" fill="#45404a"/><path d="M12 2h2v4h-2z" fill="#b08b44"/></g>
+  <g transform="translate(120 0)"><rect width="24" height="24" fill="#191d2a"/><path d="M3 17L9 7l6 8 6-11" fill="none" stroke="#7958a2" stroke-width="2"/><path d="M5 19h14" stroke="#2f2740" stroke-width="2"/></g>
+  <g transform="translate(144 0)"><rect width="24" height="24" fill="#3c3934"/><path d="M3 18h18" stroke="#6a6258" stroke-width="5"/><path d="M7 5v10M12 8v7M17 4v11" stroke="#262521" stroke-width="3"/></g>
+  <g transform="translate(168 0)"><rect width="24" height="24" fill="#111317"/><path d="M4 20L8 8l4-5 4 5 4 12" fill="#090a0c"/><path d="M8 9l8-2" stroke="#d1d5dc" stroke-width="2"/><path d="M7 20l10-8" stroke="#c52e42" stroke-width="2"/></g>
+  <!-- row 2: landmarks -->
+  <g transform="translate(0 24)"><rect width="24" height="24" fill="#11151a"/><circle cx="12" cy="12" r="8" fill="#d2d7df" stroke="#08090b" stroke-width="3"/><path d="M9 16V8h6v8" fill="#181b20"/><text x="12" y="14" text-anchor="middle" font-family="Arial" font-size="7" font-weight="700" fill="#d2d7df">H</text></g>
+  <g transform="translate(24 24)"><rect width="24" height="24" fill="#11151a"/><circle cx="12" cy="12" r="7" fill="#d1a447" stroke="#0a0b0e" stroke-width="3"/><path d="M12 7v10M7 12h10" stroke="#4b3718" stroke-width="2"/></g>
+  <g transform="translate(48 24)"><rect width="24" height="24" fill="#11151a"/><circle cx="12" cy="12" r="7" fill="#9f2334" stroke="#0a0b0e" stroke-width="3"/><path d="M8 9l8 6M16 9l-8 6" stroke="#f2c4c7" stroke-width="2"/></g>
+  <g transform="translate(72 24)"><rect width="24" height="24" fill="#11151a"/><circle cx="12" cy="12" r="7" fill="#b9bec7" stroke="#0a0b0e" stroke-width="3"/><path d="M8 16l4-8 4 8" fill="#24272c"/></g>
+  <!-- row 3: scenery -->
+  <g transform="translate(0 48)"><rect width="24" height="24" fill="#202923"/><path d="M11 21V8h3v13H11zM7 10h11v3H7zM9 6h7v4H9z" fill="#111813"/><path d="M5 18h5v3H5zM15 17h5v4h-5z" fill="#18231b"/></g>
+  <g transform="translate(24 48)"><rect width="24" height="24" fill="#252629"/><path d="M4 20V7h4v4h3V4h4v8h5v8z" fill="#111216"/><path d="M6 10h2v2H6zm8 3h3v2h-3z" fill="#5b5960"/></g>
+  <g transform="translate(48 48)"><rect width="24" height="24" fill="#312a2f"/><path d="M3 18h18v3H3zM10 18V7h4v11zM5 16h14v2H5z" fill="#69545e"/><path d="M7 8h10v2H7z" fill="#a0868e"/></g>
+  <g transform="translate(72 48)"><rect width="24" height="24" fill="#171b26"/><path d="M4 16l5-8 4 4 5-7 2 4-6 10z" fill="#342540"/><path d="M4 19h17" stroke="#76519a" stroke-width="2"/></g>
+  <!-- row 4: UI sprite motifs -->
+  <g transform="translate(0 72)"><rect width="24" height="24" fill="#0d1014"/><path d="M5 17l4-9 3 5 3-8 4 12z" fill="#c92336"/><path d="M6 18h14" stroke="#eee" stroke-width="1" opacity=".5"/></g>
+  <g transform="translate(24 72)"><rect width="24" height="24" fill="#0d1014"/><circle cx="12" cy="12" r="8" fill="#9e7537"/><circle cx="12" cy="12" r="4" fill="#171117"/><path d="M12 3v18M3 12h18" stroke="#e0bd74" stroke-width="1"/></g>
+  <g transform="translate(48 72)"><rect width="24" height="24" fill="#0d1014"/><path d="M5 17L9 7l4 2 2-4 4 12z" fill="#b84f5d"/><path d="M7 18h12" stroke="#f0aeb7" stroke-width="2"/></g>
+  <g transform="translate(72 72)"><rect width="24" height="24" fill="#0d1014"/><path d="M12 4l3 6 6 1-4 4 1 6-6-3-6 3 1-6-4-4 6-1z" fill="#d6b464"/><path d="M12 8v8" stroke="#4e3b18" stroke-width="2"/></g>
+  <g transform="translate(96 72)"><rect width="24" height="24" fill="#0d1014"/><path d="M5 18h14V7H5z" fill="#27303b" stroke="#9aa6b6" stroke-width="1"/><path d="M8 10h8M8 13h5M8 16h7" stroke="#687789" stroke-width="1"/></g>
+  <g transform="translate(120 72)"><rect width="24" height="24" fill="#0d1014"/><circle cx="12" cy="12" r="7" fill="#202633" stroke="#73829a" stroke-width="2"/><path d="M12 6v6l4 3" fill="none" stroke="#d3dae3" stroke-width="2"/></g>
+  <g transform="translate(144 72)"><rect width="24" height="24" fill="#0d1014"/><path d="M4 19h16M6 15l5-5 3 3 4-6" fill="none" stroke="#c92336" stroke-width="2"/><circle cx="18" cy="7" r="2" fill="#dfaa56"/></g>
+  <g transform="translate(168 72)"><rect width="24" height="24" fill="#0d1014"/><path d="M12 4l8 4v6c0 5-4 7-8 8-4-1-8-3-8-8V8z" fill="#161b23" stroke="#bbc3ce" stroke-width="2"/><path d="M8 12h8M12 8v8" stroke="#c92336" stroke-width="2"/></g>
+</svg>
