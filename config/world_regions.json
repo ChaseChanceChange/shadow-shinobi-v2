@@ -1,0 +1,13 @@
+{
+  "map": "ashen-frontier",
+  "version": 1,
+  "regions": [
+    {"key":"night-cell","role":"hub","danger":0,"encounters":false},
+    {"key":"ashline","role":"ruins","danger":2,"encounters":true},
+    {"key":"red-vale","role":"wild","danger":3,"encounters":true},
+    {"key":"black-rain","role":"district","danger":4,"encounters":true},
+    {"key":"glass-cathedral","role":"relic","danger":5,"encounters":true},
+    {"key":"voidscar","role":"void","danger":6,"encounters":true}
+  ],
+  "design_rule": "Region identity controls encounter pressure, landmark purpose, traversal mood and future world-event weighting; raw enemy numbers do not define progression alone."
+}
