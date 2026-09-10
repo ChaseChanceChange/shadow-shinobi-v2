@@ -1,0 +1,35 @@
+services:
+  db:
+    image: mariadb:11
+    environment:
+      MARIADB_DATABASE: shadow_shinobi
+      MARIADB_USER: shadow
+      MARIADB_PASSWORD: shadow_dev
+      MARIADB_ROOT_PASSWORD: root_dev
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./database/init.sql:/docker-entrypoint-initdb.d/001_init.sql:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  web:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_NAME: shadow_shinobi
+      DB_USER: shadow
+      DB_PASS: shadow_dev
+    ports:
+      - "8080:80"
+    volumes:
+      - ./public:/var/www/html:ro
+      - ./app:/var/www/app:ro
+      - ./config:/var/www/config:ro
+      - ./assets:/var/www/assets:ro
+volumes:
+  db_data:
