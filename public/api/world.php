@@ -12,6 +12,7 @@ spl_autoload_register(function (string $class): void {
 
 use ShadowShinobi\Core\Database;
 use ShadowShinobi\World\OverworldService;
+use ShadowShinobi\World\WorldActorCatalog;
 
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
@@ -29,30 +30,32 @@ try {
         $action = (string)($body['action'] ?? '');
 
         if ($action === 'move') {
-            $dx = (int)($body['dx'] ?? 0);
-            $dy = (int)($body['dy'] ?? 0);
-            $state = OverworldService::move($pdo, $playerId, $dx, $dy);
+            $state = OverworldService::move($pdo, $playerId, (int)($body['dx'] ?? 0), (int)($body['dy'] ?? 0));
         } elseif ($action === 'interact') {
             $state = OverworldService::state($pdo, $playerId);
             $x = (int)$state['position_x'];
             $y = (int)$state['position_y'];
-            $interaction = null;
-            foreach (OverworldService::map()['landmarks'] as $landmark) {
-                if (hypot($x - $landmark['x'], $y - $landmark['y']) <= (float)$landmark['radius']) {
-                    $interaction = $landmark;
+            $landmark = null;
+            foreach (OverworldService::map()['landmarks'] as $candidate) {
+                if (hypot($x - $candidate['x'], $y - $candidate['y']) <= (float)$candidate['radius']) {
+                    $landmark = $candidate;
                     break;
                 }
             }
-            if ($interaction === null) {
+            $actor = WorldActorCatalog::nearby($x, $y);
+            if ($landmark === null && $actor === null) {
                 $state['message'] = 'Nothing here answers your call.';
-            } elseif ($interaction['kind'] === 'hq') {
+            } elseif ($actor !== null) {
+                $state['message'] = $actor['name'] . ': ' . $actor['text'];
+                $state['interaction'] = ['id'=>$actor['id'],'name'=>$actor['name'],'kind'=>'actor','text'=>$actor['text']];
+            } elseif ($landmark['kind'] === 'hq') {
                 $pdo->prepare('UPDATE world_player_state SET energy=100 WHERE player_id=?')->execute([$playerId]);
                 $state = OverworldService::state($pdo, $playerId);
                 $state['message'] = 'Night Cell HQ: the cell recovers and prepares for another hunt.';
-                $state['interaction'] = ['id'=>$interaction['id'],'name'=>$interaction['name'],'kind'=>$interaction['kind']];
+                $state['interaction'] = ['id'=>$landmark['id'],'name'=>$landmark['name'],'kind'=>$landmark['kind']];
             } else {
-                $state['message'] = $interaction['name'] . ': ' . $interaction['description'];
-                $state['interaction'] = ['id'=>$interaction['id'],'name'=>$interaction['name'],'kind'=>$interaction['kind']];
+                $state['message'] = $landmark['name'] . ': ' . $landmark['description'];
+                $state['interaction'] = ['id'=>$landmark['id'],'name'=>$landmark['name'],'kind'=>$landmark['kind']];
             }
         } else {
             throw new InvalidArgumentException('Unknown world action.');
@@ -64,6 +67,7 @@ try {
     echo json_encode([
         'ok' => true,
         'map' => OverworldService::map(),
+        'actors' => WorldActorCatalog::all(),
         'state' => $state,
         'commander' => [
             'id' => $playerId,
