@@ -5,6 +5,7 @@ namespace ShadowShinobi\Enhancement;
 
 use RuntimeException;
 use ShadowShinobi\Core\Database;
+use ShadowShinobi\Legendary\LegendaryWeaponService;
 use ShadowShinobi\WorldMemory\EventRecorder;
 
 /**
@@ -42,12 +43,10 @@ final class EnhancementService
             }
 
             $selected = null;
-            $sacrifices = [];
             foreach ($items as $row) {
                 if ((int)$row['id'] === $itemId) {
                     $selected = $row;
-                } else {
-                    $sacrifices[] = $row;
+                    break;
                 }
             }
             if (!$selected) throw new RuntimeException('Selected gear was not found.');
@@ -61,19 +60,13 @@ final class EnhancementService
                 && random_int(1, 1_000_000) / 1_000_000 < (float)$odds['destroy'];
 
             $totalSetValue = 0;
-            foreach ($items as $item) {
-                $totalSetValue += (int)$item['set_value'];
-            }
+            foreach ($items as $item) $totalSetValue += (int)$item['set_value'];
 
             // The selected item and all sacrifices are consumed by the ritual.
-            // On success the selected item is recreated with its identity intact.
-            // On failure it becomes a Lost Relic candidate and is destroyed.
             $pdo->prepare("UPDATE equipment_items SET destroyed=1 WHERE id IN ({$placeholders})")->execute($allIds);
 
             $fragmentCount = 0;
-            foreach ($items as $item) {
-                $fragmentCount += max(1, (int)$item['set_value']);
-            }
+            foreach ($items as $item) $fragmentCount += max(1, (int)$item['set_value']);
             $pdo->prepare('INSERT INTO gear_fragments (player_id, source_item_id, quantity, reason) VALUES (?,?,?,?)')
                 ->execute([$playerId, $itemId, $fragmentCount, $success ? 'enhancement_sacrifice' : 'enhancement_failure']);
             $pdo->prepare('UPDATE players SET gear_fragments = gear_fragments + ? WHERE id=?')->execute([$fragmentCount, $playerId]);
@@ -92,7 +85,7 @@ final class EnhancementService
                         $playerId, $selected['operative_id'], $selected['item_name'], $selected['slot_name'], $selected['rarity'],
                         $nextLevel, $awakened, $selected['is_core_weapon'], $selected['weapon_family'], $selected['talent_tree_key'],
                         $selected['main_stat_name'], (float)$selected['main_stat_value'], json_encode($enhancedSubstats, JSON_THROW_ON_ERROR),
-                        $selected['visual_json'], (int)$selected['set_value'] + (int)$selected['set_value'], 0, $itemId
+                        $selected['visual_json'], (int)$selected['set_value'] * 2, 0, $itemId
                     ]);
                 $newItemId = (int)$pdo->lastInsertId();
                 $title = $awakenedNow ? 'A Weapon Awoke' : 'The Forge Answered';
@@ -115,8 +108,13 @@ final class EnhancementService
                 return ['success' => true, 'destroyed' => false, 'level' => $nextLevel, 'fragments' => $fragmentCount, 'awakened' => $awakenedNow, 'event_id' => $eventId];
             }
 
+            $legendaryShatter = null;
+            if ((string)$selected['rarity'] === 'Legendary' && strcasecmp((string)($selected['weapon_family'] ?? ''), 'Kageboshi') === 0) {
+                $legendaryShatter = LegendaryWeaponService::shatterInTransaction($pdo, $playerId, $selected, 'enhancement_failure');
+            }
+
             $lostRelicId = null;
-            $createsWorldRelic = $destroyOnFailure || $nextLevel >= 11 || in_array((string)$selected['rarity'], ['Legendary','Mythic'], true);
+            $createsWorldRelic = $legendaryShatter === null && ($destroyOnFailure || $nextLevel >= 11 || in_array((string)$selected['rarity'], ['Legendary','Mythic'], true));
             if ($createsWorldRelic) {
                 $relicPower = max(25, (int)$selected['main_stat_value'] * 35 / max(1, $nextLevel + 1));
                 $name = 'Echo of ' . preg_replace('/\s+\+\d+$/', '', (string)$selected['item_name']);
@@ -134,15 +132,17 @@ final class EnhancementService
                 $lostRelicId = (int)$pdo->lastInsertId();
             }
 
-            $summary = sprintf('%s shattered during an attempt at +%d. The fragments remain, and a relic echo has entered the world.', $selected['item_name'], $nextLevel);
-            $global = $createsWorldRelic ? 1 : 0;
-            $eventId = EventRecorder::recordInTransaction($pdo, $playerId, 'gear_destroyed', 'A Relic Was Born From Failure', $summary, [
+            $summary = $legendaryShatter !== null
+                ? $legendaryShatter['summary']
+                : sprintf('%s shattered during an attempt at +%d. The fragments remain, and a relic echo has entered the world.', $selected['item_name'], $nextLevel);
+            $eventId = EventRecorder::recordInTransaction($pdo, $playerId, 'gear_destroyed', $legendaryShatter !== null ? 'A Legendary Weapon Has Shattered' : 'A Relic Was Born From Failure', $summary, [
                 'item_id' => $itemId,
                 'sacrifice_ids' => $allIds,
                 'attempted_level' => $nextLevel,
                 'fragments' => $fragmentCount,
                 'lost_relic_id' => $lostRelicId,
-                'global_event' => (bool)$global,
+                'legendary_shatter' => $legendaryShatter,
+                'global_event' => $legendaryShatter !== null || $lostRelicId !== null,
             ]);
             if ($lostRelicId !== null) {
                 EventRecorder::recordInTransaction($pdo, $playerId, 'world_relic_created', 'The World Remembers', 'A lost relic created from a failed enhancement is now eligible to surface during exploration and world events.', [
@@ -150,18 +150,26 @@ final class EnhancementService
                     'origin_event_id' => $eventId,
                 ]);
             }
-            if ($global === 1) {
-                EventRecorder::recordInTransaction($pdo, $playerId, 'global_event', 'WORLD EVENT: A Relic Has Been Lost', $summary, [
+            if ($legendaryShatter !== null || $lostRelicId !== null) {
+                EventRecorder::recordInTransaction($pdo, $playerId, 'global_event', $legendaryShatter !== null ? 'WORLD EVENT: Kageboshi Has Shattered' : 'WORLD EVENT: A Relic Has Been Lost', $summary, [
                     'origin_event_id' => $eventId,
                     'lost_relic_id' => $lostRelicId,
+                    'legendary_shatter' => $legendaryShatter,
                     'visibility' => 'global',
                 ]);
-                $pdo->prepare('UPDATE world_events SET global_visibility=1 WHERE id=?')->execute([$pdo->lastInsertId()]);
             }
             $pdo->commit();
-            return ['success' => false, 'destroyed' => true, 'level' => $nextLevel, 'fragments' => $fragmentCount, 'lost_relic_id' => $lostRelicId, 'event_id' => $eventId];
+            return [
+                'success' => false,
+                'destroyed' => true,
+                'level' => $nextLevel,
+                'fragments' => $fragmentCount,
+                'lost_relic_id' => $lostRelicId,
+                'legendary_shatter' => $legendaryShatter,
+                'event_id' => $eventId,
+            ];
         } catch (\Throwable $e) {
-            $pdo->rollBack();
+            if ($pdo->inTransaction()) $pdo->rollBack();
             throw $e;
         }
     }
