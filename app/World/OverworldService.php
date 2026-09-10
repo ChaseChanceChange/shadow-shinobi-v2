@@ -11,6 +11,7 @@ final class OverworldService
     public const MAP_KEY = 'ashen-frontier';
     public const WIDTH = 96;
     public const HEIGHT = 60;
+    private const MOVE_COOLDOWN_MS = 120;
 
     /** @return array<string,mixed> */
     public static function map(): array
@@ -91,24 +92,32 @@ final class OverworldService
 
         self::ensureTable($pdo);
         $current = self::state($pdo, $playerId);
+
+        if (!empty($current['last_move_at'])) {
+            $last = strtotime((string)$current['last_move_at']);
+            if ($last !== false && (time() - $last) < 0) {
+                throw new \RuntimeException('Movement clock rejected.');
+            }
+        }
+
         $x = (int)$current['position_x'] + $dx;
         $y = (int)$current['position_y'] + $dy;
         if (!self::walkable($x, $y)) {
-            $current['message'] = 'The way is blocked.';
-            $current['encounter'] = null;
-            return $current;
+            return self::decorateState($current, 'The way is blocked.');
         }
 
         $zone = self::zoneAt($x, $y);
-        $energy = max(0, (int)$current['energy'] - (((int)$current['steps'] + 1) % 18 === 0 ? 1 : 0));
         $steps = (int)$current['steps'] + 1;
+        $energy = max(0, (int)$current['energy'] - ($steps % 18 === 0 ? 1 : 0));
         $discovered = json_decode((string)$current['discovered_json'], true);
         if (!is_array($discovered)) $discovered = [];
+        $newDiscovery = null;
 
         foreach (self::map()['landmarks'] as $landmark) {
             $distance = hypot($x - $landmark['x'], $y - $landmark['y']);
             if ($distance <= (float)$landmark['radius'] && !in_array($landmark['id'], $discovered, true)) {
                 $discovered[] = $landmark['id'];
+                $newDiscovery = $landmark;
             }
         }
 
@@ -118,6 +127,15 @@ final class OverworldService
         $result = self::state($pdo, $playerId);
         $result['zone_changed'] = ($zone['key'] ?? null) !== ($current['zone']['key'] ?? null);
         $result['message'] = self::movementMessage($result, $current);
+        if ($newDiscovery !== null) {
+            $result['discovery'] = [
+                'id'=>$newDiscovery['id'],
+                'name'=>$newDiscovery['name'],
+                'kind'=>$newDiscovery['kind'],
+                'description'=>$newDiscovery['description'],
+            ];
+            $result['message'] = 'DISCOVERY: ' . $newDiscovery['name'] . ' added to your world memory.';
+        }
         $result['encounter'] = self::rollEncounter($zone, $x, $y, $steps);
         return $result;
     }
@@ -174,7 +192,7 @@ final class OverworldService
     private static function rollEncounter(array $zone, int $x, int $y, int $steps): ?array
     {
         $rate = (float)($zone['encounter_rate'] ?? 0.06);
-        if ($rate <= 0 || ($steps % 2 === 0 && $rate < 0.1)) return null;
+        if ($rate <= 0 || (($steps % 2) === 0 && $rate < 0.1)) return null;
         $seed = abs(crc32(self::MAP_KEY . ':' . $x . ':' . $y . ':' . $steps));
         $roll = ($seed % 100000) / 100000;
         if ($roll >= $rate) return null;
