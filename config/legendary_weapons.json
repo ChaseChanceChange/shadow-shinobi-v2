@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "philosophy": "Legendary is a verb, not a noun.",
+  "weapons": [
+    {
+      "key":"kageboshi",
+      "name":"Kageboshi, the Shadow-Splitter",
+      "type":"Odachi",
+      "element":"Void / Shadow",
+      "base_damage_tier":4,
+      "shatter_fragments":5,
+      "fragment_lifetime_days":7,
+      "talent_model":"branching",
+      "ultimate":"Kageboshi's Echo",
+      "world_hooks":["lost_relics","world_memory","forge_events","fragment_hunt"]
+    },
+    {
+      "key":"hollow-verdict",
+      "name":"Hollow Verdict",
+      "type":"Warhammer",
+      "element":"Holy / Corrupt",
+      "talent_model":"branching",
+      "world_hooks":["execution_yard","judgment_events","sacrifice"]
+    },
+    {
+      "key":"tsumi-no-kage",
+      "name":"Tsumi no Kage",
+      "type":"Kusarigama",
+      "element":"Poison / Shadow",
+      "talent_model":"branching",
+      "world_hooks":["sin_count","demon_sites","soul_events"]
+    },
+    {
+      "key":"kigen-no-ha",
+      "name":"Kigen no Ha",
+      "type":"Tanto",
+      "element":"Pure / Kinetic",
+      "talent_model":"branching",
+      "world_hooks":["first-blade_sites","ancient-forges","origin_lore"]
+    },
+    {
+      "key":"yurei-no-tsurugi",
+      "name":"Yūrei no Tsurugi",
+      "type":"Katana",
+      "element":"Spirit",
+      "talent_model":"branching",
+      "world_hooks":["ghost-war","memory_events","community_events","player_hunter_history"]
+    }
+  ],
+  "balance": {
+    "legendary_role":"sidegrade",
+    "competitive_goal":"A highly optimized non-legendary build remains viable.",
+    "raw_stat_policy":"Legendary identity comes primarily from mechanics, history and utility rather than runaway base-stat inflation.",
+    "access_policy":"Every legendary journey begins with an obtainable world-facing entry point; completion depends on player action, risk and cooperation."
+  }
+}
