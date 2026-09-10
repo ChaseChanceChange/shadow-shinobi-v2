@@ -15,7 +15,6 @@ final class LegendaryWeaponService
             throw new \InvalidArgumentException('The selected item is not a Kageboshi legendary instance.');
         }
 
-        self::ensureTables($pdo);
         $sourceId = (int)$item['id'];
         $originPayload = [
             'legendary_key' => 'kageboshi',
@@ -61,10 +60,5 @@ final class LegendaryWeaponService
     {
         $locations = [[31,15],[42,27],[57,11],[66,34],[79,45],[77,16],[24,41],[58,42]];
         return $locations[$seed % count($locations)];
-    }
-
-    private static function ensureTables(PDO $pdo): void
-    {
-        $pdo->exec("CREATE TABLE IF NOT EXISTS legendary_weapons (\n            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\n            weapon_key VARCHAR(64) NOT NULL UNIQUE,\n            name VARCHAR(128) NOT NULL,\n            lore_text TEXT NOT NULL,\n            talent_tree_json JSON NOT NULL,\n            shatter_fragments INT NOT NULL DEFAULT 5,\n            fragment_ttl_days INT NOT NULL DEFAULT 7,\n            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP\n        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
     }
 }
